@@ -1,100 +1,101 @@
 # What is this
-CapCut の読み上げAPIのセルフホストRapperAPIです
+Self-hosted RapperAPI for CapCut's reading API
 
 # NEWS
 ### 2024/05/29
-> **tokenが取得できないバグが修正されました！**
+> **A bug where tokens could not be obtained has been fixed! **
 
 ### 2024/05/27
-> **新しい方法の糸口が見えた！！もうしばらくしたら修正アップデートします！！**
+> **I found a clue to a new method! ! I will update the fix soon! ! **
 
 ### 2024/02/07
-> **2024/02/07 時点でAPIのバージョンが変わり新規に取得した `SIGN` 及び `DEVICE_TIME` を利用したtokenの生成ができなくなりました。** <br>
-現在新しくtokenを取得する方法を準備中です。
+> **As of 2024/02/07, the API version has changed and it is no longer possible to generate a token using the newly acquired `SIGN` and `DEVICE_TIME`. ** <br>
+We are currently preparing a new way to obtain a token.
 
 # How To Use
-## .envファイルの作成
-`.env.example`ファイルからコピーして`.env`ファイルを作成し、その中に以下の項目があるかを確認してください。
+## Create .env file
+Create a `.env` file by copying it from the `.env.example` file and check if the following items are in it.
 ```
 DEVICE_TIME=""
 SIGN=""
 ```
-それぞれの項目に以下の手順で取得した値を入力してください。
+Please enter the values ​​obtained in the following steps into each item.
 
-## 値の入手
+## Get value
 ![1](/images/1.png)
 
-CapCutへログイン後、新規プロジェクトを空で作成し適当なテキストを作成します。
+After logging in to CapCut, create a new empty project and create an appropriate text.
 
-その後、テキスト読み上げタブへ移り、DevToolsの`Clear Network log`をクリックして一度ログを消して見やすくします。
+After that, go to the text-to-speech tab and click `Clear Network log' in DevTools to clear the log and make it easier to see.
 
 ![2](/images/2.png)
 
-その後、適当な声を選択して生成させましょう。
+Then, select an appropriate voice and generate it.
 
-すると、いくつかの通信が行われログが出てきます。
+Then, some communication will occur and a log will appear.
 
-最初の`2000ms`程度をフィルタして見てみると画像のような通信ログがあるはずです。(もし数が多い場合は、`Filter`から`token`と検索してください。)
+If you filter the first `2000ms` and look at it, you should see a communication log like the image below. (If there are many, search for `token` from `Filter`.)
 
-その中から`POST`で通信している`token`を見つけてください。
+Among them, find the `token` that is communicating with `POST`.
 
-その通信のリクエストヘッダーから画像の二つの値、`Device-Time`と`Sign`をコピーして先ほど作成した`.env`ファイルの各変数へ記入します。
+Copy the two values ​​in the image, `Device-Time` and `Sign`, from the request header of that communication and enter them into each variable in the `.env` file you created earlier.
 
 # API Docs
-## ベースURL
+## Base URL
 ```
 http://<host>:<port>/v1/
 ```
-## エンドポイント
+## end point
 ### synthesize
-#### リクエスト
+#### request
 ```http
 GET /v1/synthesize
 ```
-#### クリエパラメーター
-| パラメーター | 型 | 必須 | 説明 | デフォルト値 |
+#### Clier parameters
+| Parameter | Type | Required | Description | Default value |
 |--------------|----|------|------|--------------|
-| `text`   | string | はい | 読み上げるテキスト | - |
-| `type`   | number | いいえ | 使用する合成音声のタイプ | `0` |
-| `pitch`  | number | いいえ | 合成された音声のピッチ | `10` |
-| `speed`  | number | いいえ | 合成された音声のスピード | `10` |
-| `volume` | number | いいえ | 合成された音声のボリューム | `10` |
-| `method` | string | いいえ | 合成された音声のレスポンスに使用するメソッド<br>`buffer` または `stream` のいずれか | `buffer` |
+| `text` | string | Yes | Text to read | - |
+| `type` | number | No | Type of synthetic voice to use | `0` |
+| `pitch` | number | No | Pitch of synthesized voice | `10` |
+| `speed` | number | No | Speed ​​of synthesized voice | `10` |
+| `volume` | number | No | Volume of synthesized audio | `10` |
+| `method` | string | No | Method to use for synthesized speech response<br>Either `buffer` or `stream` | `buffer` |
 
-#### レスポンス
-| ステータスコード | 状態 | 説明 | 内容 |
+#### Response
+| Status code | Condition | Description | Content |
 |------------------|------|------|------|
-| `200 OK` | 成功 | WAV形式の合成された音声を返します | `buffer` メソッドの場合: 完全なバッファとして音声を返します<br>`stream` メソッドの場合: 音声データをストリーム配信します |
-| `400 Bad Request` | エラー | クエリパラメータが不足しています | ```json { "error": "Bad Request" } ``` |
-| `500 Internal Server Error` | エラー | 音声生成に問題が発生しました | `buffer` メソッドの場合: ```json { "error": "can't get buffer" } ``` <br>`stream` メソッドの場合: ```json { "error": "can't get stream" } ``` |
+| `200 OK` | Success | Returns the synthesized audio in WAV format | For the `buffer` method: Returns the audio as a complete buffer<br>For the `stream` method: Streams the audio data Masu |
+| `400 Bad Request` | Error | Missing query parameters | ```json { "error": "Bad Request" } ``` |
+| `500 Internal Server Error` | Error | Problem generating audio | For `buffer` method: ```json { "error": "can't get buffer" } ``` <br>` For the stream` method: ```json { "error": "can't get stream" } ``` |
 
-#### リクエスト例
+#### Request example
 ```http
-GET http://localhost:8080/v1/synthesize?text=こんにちは&type=0&pitch=10&speed=10&volume=10&method=buffer
+GET http://localhost:8080/v1/synthesize?text=Hello&type=0&pitch=10&speed=10&volume=10&method=buffer
 ```
 
-#### レスポンス例
-| ステータスコード | Content-Type | 内容 |
+#### Response example
+| Status Code | Content-Type | Content |
 |------------------|--------------|------|
-| `200 OK` | audio/wav | WAV形式の音声バッファ |
+| `200 OK` | audio/wav | WAV format audio buffer |
 
 ## Voice Type List
-| type | 声の種類          | スピーカーID            |
+| type | Voice type | Speaker ID |
 |------|------------------|-------------------------|
-| 0    | 謎1 男子1        | BV525_streaming         |
-| 1    | 謎2 坊や          | BV528_streaming         |
-| 2    | カワボ            | BV017_streaming         |
-| 3    | お姉さん          | BV016_streaming         |
-| 4    | 少女              | BV023_streaming         |
-| 5    | 女子              | BV024_streaming         |
-| 6    | 男子2             | BV018_streaming         |
-| 7    | 坊ちゃん          | BV523_streaming         |
-| 8    | 女子              | BV521_streaming         |
-| 9    | 女子アナ          | BV522_streaming         |
-| 10   | 男性アナ          | BV524_streaming         |
-| 11   | 元気ロリ          | BV520_streaming         |
-| 12   | 明るいハニー      | VOV401_bytesing3_kangkangwuqu |
-| 13   | 優しいレディー    | VOV402_bytesing3_oh     |
-| 14   | 風雅メゾソプラノ  | VOV402_bytesing3_aidelizan |
-| 15   | Sakura            | jp_005                  |
-| その他/入力なし | お姉さん         | BV016_streaming |
+| 0 | Mystery 1 Boys 1 | BV525_streaming |
+| 1 | Mystery 2 Boy | BV528_streaming |
+| 2 | Kawabo | BV017_streaming |
+| 3 | Big sister | BV016_streaming |
+| 4 | Girls | BV023_streaming |
+| 5 | Women | BV024_streaming |
+| 6 | Men 2 | BV018_streaming |
+| 7 | Botchan | BV523_streaming |
+| 8 | Women | BV521_streaming |
+| 9 | Female announcer | BV522_streaming |
+| 10 | Male announcer | BV524_streaming |
+| 11 | Genki Loli | BV520_streaming |
+| 12 | Bright Honey | VOV401_bytesing3_kangkangwuqu |
+| 13 | Kind lady | VOV402_bytesing3_oh |
+| 14 | 风雅メゾソプラノ | VOV402_bytesing3_aidelizan |
+| 15 | Sakura | jp_005 |
+| Other/No input | Older sister | BV016_streaming |
+
